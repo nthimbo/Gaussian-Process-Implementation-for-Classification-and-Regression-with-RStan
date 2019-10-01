@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "functions {\n  matrix L_cov_exp_quad_ARD(vector[] x,\n                            real alpha,\n                            vector rho,\n                            real delta) {\n    int N = size(x);\n    matrix[N, N] K;\n    real sq_alpha = square(alpha);\n    for (i in 1:(N-1)) {\n      K[i, i] = sq_alpha + delta;\n      for (j in (i + 1):N) {\n        K[i, j] = sq_alpha* exp(-0.5 * dot_self((x[i] - x[j]) ./ rho));\n                      \n        K[j, i] = K[i, j];\n      }\n    }\n    K[N, N] = sq_alpha + delta;\n    return cholesky_decompose(K);\n  }\n  \n  \nvector gp_pred_rng(vector[] x_pred,\nvector y1, vector[] x,\nreal magnitude, real length_scale) {\nint N = rows(y1);\nint N_pred = size(x_pred);\nvector[N_pred] f2;\n\n{\nmatrix[N, N] K = 200 *cov_exp_quad(x, magnitude, length_scale) +\ndiag_matrix(rep_vector(1e-1, N));\nmatrix[N, N] L_K = cholesky_decompose(K);\nvector[N] L_K_div_y1 = mdivide_left_tri_low(L_K, y1);\nvector[N] K_div_y1 = mdivide_right_tri_low(L_K_div_y1', L_K)';\nmatrix[N, N_pred] k_x_x_pred = cov_exp_quad(x, x_pred, magnitude, length_scale);\nf2 = (k_x_x_pred' * K_div_y1);\n}\nreturn f2;\n}\n  \n}\ndata {\n  int<lower=1> N;\n  int<lower=1> D;                                                                                           \n  vector[D] x[N];\n  //vector[N] y;\n  int<lower=1> N_pred;\n  vector[D] x_pred[N_pred];\n  int<lower=0,upper=2> y[N];\n}\n\n\ntransformed data {\n  real delta = 1e-9;\n}\n\nparameters {\n  real<lower=0> magnitude;\n  real<lower=0> length_scale;\n  vector<lower=0>[D] rho1;\n  real<lower=0> rho;\n  real<lower=0> alpha;\n  real<lower=0> sigma;\n  vector[N] eta;\n}\n\ntransformed parameters {\nvector[N] f1;\nvector[N] f;\n\n   {\n        matrix[N, N] K;\n        matrix[N, N] L_K;\n        matrix[N, N] L_K1;\n        L_K1 = L_cov_exp_quad_ARD(x, alpha, rho1, delta);\n        f1 = L_K1 * eta;\n        \n        \n\n        K = 69 * cov_exp_quad(x, alpha, rho)+ diag_matrix(rep_vector(1e-1, N));\n        L_K = cholesky_decompose(K);\n        f = L_K * eta;\n    }\n}\n\n\n\n\nmodel {\n  \n  length_scale ~ gamma(2, 2);\n  magnitude ~ cauchy(0,5);\n  rho1 ~ inv_gamma(5, 5);\n  alpha ~ std_normal();\n  sigma ~ std_normal();\n  eta ~ normal(0, 5);\n  rho ~ inv_gamma(5, 5);\n  \n  //y1 ~ normal(f1, sigma);\n  y ~ multinomial(softmax(f));\n}\n\ngenerated quantities {\nvector[N_pred] f_pred = gp_pred_rng(x_pred, f, x, magnitude, length_scale);\nint y_pred[N_pred];\nint y_pred_in[N];\n\ny_pred_in = multinomial_rng(softmax(f),N); // in sample predictin\ny_pred = multinomial_rng(softmax(f_pred),N_pred); // out of sample predictions\n\n}\n\n\n",
+    "created" : 1557972131402.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1434560869",
+    "id" : "6F1EBD7F",
+    "lastKnownWriteTime" : 1553431070,
+    "last_content_update" : 1553431070,
+    "path" : "~/Pictures/Nthimbo_Tembo_Gift_Stochastic_processes_Final_Project/Classification_model.stan",
+    "project_path" : "Classification_model.stan",
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "stan"
+}

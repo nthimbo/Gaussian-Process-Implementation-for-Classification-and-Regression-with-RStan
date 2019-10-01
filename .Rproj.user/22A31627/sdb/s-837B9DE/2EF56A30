@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "functions {\n  vector gp_pred_rng(real[] x2,\n                     vector y1, real[] x1,\n                     real alpha, real rho, real sigma, real delta) {\n    int N1 = rows(y1);\n    int N2 = size(x2);\n    vector[N2] f2;\n    {\n      matrix[N1, N1] K =   cov_exp_quad(x1, alpha, rho)\n                         + diag_matrix(rep_vector(square(sigma), N1));\n      matrix[N1, N1] L_K = cholesky_decompose(K);\n\n      vector[N1] L_K_div_y1 = mdivide_left_tri_low(L_K, y1);\n      vector[N1] K_div_y1 = mdivide_right_tri_low(L_K_div_y1', L_K)';\n      matrix[N1, N2] k_x1_x2 = cov_exp_quad(x1, x2, alpha, rho);\n      vector[N2] f2_mu = (k_x1_x2' * K_div_y1);\n      matrix[N1, N2] v_pred = mdivide_left_tri_low(L_K, k_x1_x2);\n      matrix[N2, N2] cov_f2 =   cov_exp_quad(x2, alpha, rho) - v_pred' * v_pred\n                              + diag_matrix(rep_vector(delta, N2));\n      f2 = multi_normal_rng(f2_mu, cov_f2);\n    }\n    return f2;\n  }\n}\n\ndata {\n  int<lower=1> N;\n  real x[N];\n  vector[N] y;\n\n  int<lower=1> N_predict;\n  real x_predict[N_predict];\n}\n\nparameters {\n  real<lower=0> rho;\n  real<lower=0> alpha;\n  real<lower=0> sigma;\n}\n\nmodel {\n  matrix[N, N] cov =   cov_exp_quad(x, alpha, rho)\n                     + diag_matrix(rep_vector(square(sigma), N));\n  matrix[N, N] L_cov = cholesky_decompose(cov);\n\n  // P[rho < 2.0] = 0.01\n  // P[rho > 10] = 0.01\n  rho ~ inv_gamma(8.91924, 34.5805);\n  alpha ~ normal(0, 2);\n  sigma ~ normal(0, 1);\n\n  y ~ multi_normal_cholesky(rep_vector(0, N), L_cov);\n}\n\ngenerated quantities {\n  vector[N_predict] f_predict = gp_pred_rng(x_predict, y, x, alpha, rho, sigma, 1e-10);\n  vector[N_predict] y_predict;\n  for (n in 1:N_predict)\n    y_predict[n] = normal_rng(f_predict[n], sigma);\n}\n\n",
+    "created" : 1557828098895.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "585663939",
+    "id" : "2EF56A30",
+    "lastKnownWriteTime" : 1553433995,
+    "last_content_update" : 1553433995,
+    "path" : "~/Pictures/Nthimbo_Tembo_Gift_Stochastic_processes_Final_Project/Regression_model.stan",
+    "project_path" : "Regression_model.stan",
+    "properties" : {
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "stan"
+}

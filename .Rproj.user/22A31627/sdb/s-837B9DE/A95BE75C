@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\nalpha_true <- 3\nrho_true <- 5.5\nsigma_true <- 0.1\nmu = c()\n\n\nset.seed(34526)\n\n# data \nN <- 600\nx_total <- rnorm(N, 0, 1)\nx_total\n\ny_total <- rep(0, N)\nlength(y_total)\nprob_samples = c(rep(0.1, N*0.95), rep(1, N*0.05))\n\n\nfor (i in 1:length(x_total)){\n  pos <- x_total[i]\n  sigma <- sample(prob_samples, size = 1, replace = FALSE)\n  mui <- 0.3+0.4*pos+0.5*sin(2.7*pos)\n  mu[i] <- mui\n  y_total[i] <- rnorm(1, mui, sigma)\n}\n\nplot(x_total, y_total, main = \"Regression Actual Data\")\nsimu_data <- list(alpha=alpha_true, rho=rho_true, sigma=sigma_true,\n                  mu = mu, N=N, x=x_total, f=y_total)\n\n\n\n\n\n\n\n",
+    "created" : 1557828114330.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4001665958",
+    "id" : "A95BE75C",
+    "lastKnownWriteTime" : 1553431910,
+    "last_content_update" : 1557971400263,
+    "path" : "~/Pictures/Nthimbo_Tembo_Gift_Stochastic_processes_Final_Project/regression_data.R",
+    "project_path" : "regression_data.R",
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
